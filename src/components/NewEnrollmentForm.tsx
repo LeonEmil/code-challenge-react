@@ -1,8 +1,9 @@
 import React, { useState } from "react"
 import { TextField, Button, Box, Typography, Paper } from "@mui/material"
+import type { Enrollment as EnrollmentType } from "../types/enrollment"
 
 type Props = {
-    onCreate: (enrollment: any) => void
+    onCreate: (enrollment: EnrollmentType) => void
 }
 
 export const NewEnrollmentForm: React.FC<Props> = ({ onCreate }) => {
@@ -23,7 +24,7 @@ export const NewEnrollmentForm: React.FC<Props> = ({ onCreate }) => {
             created_at: new Date().toISOString(),
         }
 
-        onCreate(newEnrollment)
+        onCreate(newEnrollment as EnrollmentType)
         setName("")
         setEmail("")
         setWorkshop("")

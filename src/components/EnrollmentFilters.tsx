@@ -1,9 +1,10 @@
 import React from "react"
 import { FormControl, InputLabel, Select, MenuItem, Box } from "@mui/material"
+import type { StatusFilter } from "../types/enrollment"
 
 type Props = {
-    currentFilter: string
-    onFilterChange: (filter: string) => void
+    currentFilter: StatusFilter
+    onFilterChange: (filter: StatusFilter) => void
 }
 
 export const EnrollmentFilters: React.FC<Props> = ({
@@ -19,7 +20,7 @@ export const EnrollmentFilters: React.FC<Props> = ({
                     id="status-filter"
                     value={currentFilter}
                     label="Filter by Status"
-                    onChange={(e) => onFilterChange(e.target.value)}
+                    onChange={(e) => onFilterChange(e.target.value as StatusFilter)}
                 >
                     <MenuItem value="all">All</MenuItem>
                     <MenuItem value="pending">Pending</MenuItem>

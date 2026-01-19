@@ -1,88 +1,19 @@
-import { useEffect, useState } from 'react'
-import { fetchEnrollments } from './api/enrollments'
+import { useState } from 'react'
 import { EnrollmentFilters } from './components/EnrollmentFilters'
+import { EnrollmentTable } from './components/EnrollmentTable'
 import { NewEnrollmentForm } from './components/NewEnrollmentForm'
 import { Layout } from './components/Layout'
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  CircularProgress,
-  Grid,
-  Paper,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from '@mui/material'
-
-type EnrollmentStatus = 'pending' | 'confirmed' | 'cancelled'
-type StatusFilter = 'all' | EnrollmentStatus
-
-type Enrollment = {
-  id: string
-  student_name: string
-  email: string
-  workshop: string
-  status: EnrollmentStatus
-  created_at: Date | string
-}
-
-const normalizeDate = (date: Date | string): Date => {
-  return typeof date === 'string' ? new Date(date) : date
-}
+import { Alert, Box, Card, CardContent, CircularProgress, Stack, Typography } from '@mui/material'
+import Grid from '@mui/material/Grid'
+import { useEnrollments } from './hooks/useEnrollments'
+import { useEnrollmentFilter } from './hooks/useEnrollmentFilter'
+import type { StatusFilter } from './types/enrollment'
 
 function App() {
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
+  const { enrollments, loading, error, addEnrollment, confirmEnrollment } = useEnrollments()
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 
-  useEffect(() => {
-    setLoading(true)
-    setError(null)
-    fetchEnrollments()
-      .then((data: Enrollment[]) => {
-        setEnrollments(
-          data.map((e) => ({
-            ...e,
-            created_at: normalizeDate(e.created_at),
-          })),
-        )
-      })
-      .catch((err: unknown) => {
-        setError(err instanceof Error ? err : new Error('Failed to load enrollments'))
-      })
-      .finally(() => setLoading(false))
-  }, [])
-
-  const filteredEnrollments = enrollments.filter((enrollment) => {
-    if (statusFilter === 'all') return true
-    return enrollment.status === statusFilter
-  })
-
-  const addEnrollment = (enrollment: Enrollment) => {
-    setEnrollments((prev) => [
-      ...prev,
-      {
-        ...enrollment,
-        created_at: normalizeDate(enrollment.created_at),
-      },
-    ])
-  }
-
-  const confirmEnrollment = (id: string) => {
-    setEnrollments((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, status: 'confirmed' } : e)),
-    )
-  }
+  const filteredEnrollments = useEnrollmentFilter(enrollments, statusFilter)
 
   if (loading) return (
     <Layout>
@@ -114,63 +45,13 @@ function App() {
                     <Typography variant="h6">Enrollments List</Typography>
                     <EnrollmentFilters
                       currentFilter={statusFilter}
-                      onFilterChange={(filter) => setStatusFilter(filter as StatusFilter)}
+                      onFilterChange={(filter) => setStatusFilter(filter)}
                     />
                   </Box>
-                  {!filteredEnrollments || filteredEnrollments.length === 0 ? (
-                    <Typography>No enrollments found.</Typography>
-                  ) : (
-                    <TableContainer component={Paper}>
-                      <Table sx={{ minWidth: 650 }} aria-label="enrollments table">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>Name</TableCell>
-                            <TableCell>Email</TableCell>
-                            <TableCell>Workshop</TableCell>
-                            <TableCell>Status</TableCell>
-                            <TableCell>Date</TableCell>
-                            <TableCell>Actions</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {filteredEnrollments.map((enrollment) => {
-                            const createdAt = normalizeDate(enrollment.created_at)
-                            return (
-                              <TableRow
-                                key={enrollment.id}
-                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                              >
-                                <TableCell component="th" scope="row">
-                                  {enrollment.student_name}
-                                </TableCell>
-                                <TableCell>{enrollment.email}</TableCell>
-                                <TableCell>{enrollment.workshop}</TableCell>
-                                <TableCell>
-                                  <Chip
-                                    label={enrollment.status}
-                                    color={getStatusColor(enrollment.status)}
-                                    size="small"
-                                  />
-                                </TableCell>
-                                <TableCell>{createdAt.toLocaleDateString()}</TableCell>
-                                <TableCell>
-                                  {enrollment.status === 'pending' && (
-                                    <Button
-                                      variant="contained"
-                                      size="small"
-                                      onClick={() => confirmEnrollment(enrollment.id)}
-                                    >
-                                      Confirm
-                                    </Button>
-                                  )}
-                                </TableCell>
-                              </TableRow>
-                            )
-                          })}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  )}
+                  <EnrollmentTable
+                    enrollments={filteredEnrollments}
+                    onConfirm={confirmEnrollment}
+                  />
                 </Stack>
               </CardContent>
             </Card>
@@ -182,19 +63,6 @@ function App() {
       </Stack>
     </Layout>
   )
-}
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'confirmed':
-      return 'success'
-    case 'pending':
-      return 'warning'
-    case 'cancelled':
-      return 'error'
-    default:
-      return 'default'
-  }
 }
 
 export default App

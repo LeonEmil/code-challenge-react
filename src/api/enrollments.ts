@@ -1,3 +1,5 @@
+import type { Enrollment as EnrollmentType } from './../types/enrollment.ts'
+
 export const mockEnrollments = [
   {
     id: "1",
@@ -33,10 +35,10 @@ export const mockEnrollments = [
   },
 ]
 
-export const fetchEnrollments = (): Promise<any[]> => {
+export const fetchEnrollments = (): Promise<EnrollmentType[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve([...mockEnrollments])
+      resolve([...mockEnrollments] as EnrollmentType[])
     }, 800)
   })
 }
