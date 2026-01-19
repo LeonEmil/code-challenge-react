@@ -3,7 +3,7 @@ import { EnrollmentFilters } from './components/EnrollmentFilters'
 import { EnrollmentTable } from './components/EnrollmentTable'
 import { NewEnrollmentForm } from './components/NewEnrollmentForm'
 import { Layout } from './components/Layout'
-import { Alert, Box, Card, CardContent, CircularProgress, Stack, Typography } from '@mui/material'
+import { Alert, Box, Card, CardContent, CircularProgress, Stack, TextField, Typography } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import { useEnrollments } from './hooks/useEnrollments'
 import { useEnrollmentFilter } from './hooks/useEnrollmentFilter'
@@ -12,8 +12,9 @@ import type { StatusFilter } from './types/enrollment'
 function App() {
   const { enrollments, loading, error, addEnrollment, confirmEnrollment } = useEnrollments()
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [searchText, setSearchText] = useState<string>('')
 
-  const filteredEnrollments = useEnrollmentFilter(enrollments, statusFilter)
+  const filteredEnrollments = useEnrollmentFilter(enrollments, statusFilter, searchText || '')
 
   if (loading) return (
     <Layout>
@@ -43,6 +44,12 @@ function App() {
                 <Stack spacing={2}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="h6">Enrollments List</Typography>
+                    <TextField
+  size="small"
+  label="Search"
+  value={searchText}
+      onChange={(e) => setSearchText(e.target.value)}
+/>
                     <EnrollmentFilters
                       currentFilter={statusFilter}
                       onFilterChange={(filter) => setStatusFilter(filter)}
