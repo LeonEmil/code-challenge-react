@@ -1,5 +1,5 @@
-import React, { useState } from "react"
-import { TextField, Button, Box, Typography, Paper } from "@mui/material"
+import React, { useId, useState } from "react"
+import { Alert, TextField, Button, Box, Typography, Paper } from "@mui/material"
 import type { Enrollment as EnrollmentType } from "../types/enrollment"
 
 type Props = {
@@ -10,10 +10,15 @@ export const NewEnrollmentForm: React.FC<Props> = ({ onCreate }) => {
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [workshop, setWorkshop] = useState("")
+    const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+    const formTitleId = useId()
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        if (!name || !email || !workshop) return
+        if (!name || !email || !workshop) {
+            setSubmitStatus('error')
+            return
+        }
 
         const newEnrollment = {
             id: crypto.randomUUID(),
@@ -28,12 +33,19 @@ export const NewEnrollmentForm: React.FC<Props> = ({ onCreate }) => {
         setName("")
         setEmail("")
         setWorkshop("")
+        setSubmitStatus('success')
     }
 
     return (
-        <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>New Enrollment</Typography>
-            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Paper sx={{ p: 3 }} component="section" aria-labelledby={formTitleId}>
+            <Typography variant="h6" gutterBottom id={formTitleId}>New Enrollment</Typography>
+            <Box
+                component="form"
+                onSubmit={handleSubmit}
+                sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+                aria-label="Formulario para crear una nueva inscripción"
+                noValidate
+            >
                 <TextField
                     label="Name"
                     variant="outlined"
@@ -41,6 +53,7 @@ export const NewEnrollmentForm: React.FC<Props> = ({ onCreate }) => {
                     onChange={(e) => setName(e.target.value)}
                     required
                     fullWidth
+                    aria-label="Nombre del estudiante"
                 />
                 <TextField
                     label="Email"
@@ -50,6 +63,7 @@ export const NewEnrollmentForm: React.FC<Props> = ({ onCreate }) => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     fullWidth
+                    aria-label="Email del estudiante"
                 />
                 <TextField
                     label="Workshop"
@@ -58,7 +72,18 @@ export const NewEnrollmentForm: React.FC<Props> = ({ onCreate }) => {
                     onChange={(e) => setWorkshop(e.target.value)}
                     required
                     fullWidth
+                    aria-label="Taller"
                 />
+                {submitStatus === 'success' && (
+                    <Alert severity="success" role="status" aria-live="polite">
+                        Enrollment created.
+                    </Alert>
+                )}
+                {submitStatus === 'error' && (
+                    <Alert severity="error" role="alert" aria-live="assertive">
+                        Please fill all required fields.
+                    </Alert>
+                )}
                 <Button type="submit" variant="contained" color="primary">
                     Create
                 </Button>

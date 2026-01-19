@@ -36,25 +36,34 @@ const normalizeDate = (date: Date | string): Date => {
 
 export const EnrollmentTable = ({ enrollments, onConfirm }: Props) => {
   if (!enrollments.length) {
-    return <Typography>No enrollments found.</Typography>
+    return (
+      <Typography role="status" aria-live="polite">
+        No enrollments found.
+      </Typography>
+    )
   }
 
   return (
     <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} aria-label="enrollments table">
+      <Table sx={{ minWidth: 650 }} aria-label="Tabla de inscripciones">
         <TableHead>
           <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Workshop</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Date</TableCell>
-            <TableCell>Actions</TableCell>
+            <TableCell component="th" scope="col">Name</TableCell>
+            <TableCell component="th" scope="col">Email</TableCell>
+            <TableCell component="th" scope="col">Workshop</TableCell>
+            <TableCell component="th" scope="col">Status</TableCell>
+            <TableCell component="th" scope="col">Date</TableCell>
+            <TableCell component="th" scope="col">Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {enrollments.map((enrollment) => {
             const createdAt = normalizeDate(enrollment.created_at)
+            const formattedDate = createdAt.toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })
             return (
               <TableRow
                 key={enrollment.id}
@@ -70,15 +79,19 @@ export const EnrollmentTable = ({ enrollments, onConfirm }: Props) => {
                     label={enrollment.status}
                     color={getStatusColor(enrollment.status)}
                     size="small"
+                    aria-label={`Estado: ${enrollment.status}`}
                   />
                 </TableCell>
-                <TableCell>{createdAt.toLocaleDateString()}</TableCell>
+                <TableCell>
+                  <time dateTime={createdAt.toISOString()}>{formattedDate}</time>
+                </TableCell>
                 <TableCell>
                   {enrollment.status === 'pending' && (
                     <Button
                       variant="contained"
                       size="small"
                       onClick={() => onConfirm(enrollment.id)}
+                      aria-label={`Confirmar inscripción de ${enrollment.student_name}`}
                     >
                       Confirm
                     </Button>

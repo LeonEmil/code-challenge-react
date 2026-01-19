@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { EnrollmentFilters } from './components/EnrollmentFilters'
 import { EnrollmentTable } from './components/EnrollmentTable'
 import { NewEnrollmentForm } from './components/NewEnrollmentForm'
@@ -13,20 +13,23 @@ function App() {
   const { enrollments, loading, error, addEnrollment, confirmEnrollment } = useEnrollments()
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [searchText, setSearchText] = useState<string>('')
+  const searchHelpTextId = useId()
 
   const filteredEnrollments = useEnrollmentFilter(enrollments, statusFilter, searchText || '')
 
   if (loading) return (
     <Layout>
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <CircularProgress />
+        <CircularProgress aria-label="Cargando inscripciones" />
       </Box>
     </Layout>
   )
 
   if (error) return (
     <Layout>
-      <Alert severity="error">{error.message || 'Un error ocurrió al leer las suscripciones'}</Alert>
+      <Alert severity="error" role="alert">
+        {error.message || 'Un error ocurrió al leer las suscripciones'}
+      </Alert>
     </Layout>
   )
 
@@ -42,19 +45,37 @@ function App() {
             <Card>
               <CardContent>
                 <Stack spacing={2}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box
+                    component="section"
+                    aria-label="Controles de búsqueda y filtros"
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 2,
+                      flexWrap: 'wrap',
+                    }}
+                  >
                     <Typography variant="h6">Enrollments List</Typography>
-                    <TextField
-  size="small"
-  label="Search"
-  value={searchText}
-      onChange={(e) => setSearchText(e.target.value)}
-/>
                     <EnrollmentFilters
                       currentFilter={statusFilter}
-                      onFilterChange={(filter) => setStatusFilter(filter)}
+                      onFilterChange={(filter: StatusFilter): void => setStatusFilter(filter)}
                     />
                   </Box>
+                  <TextField
+                    size="small"
+                    label="Search"
+                    variant="outlined"
+                    value={searchText}
+                    onChange={(e): void => setSearchText(e.target.value)}
+                    fullWidth
+                    aria-label="Buscar por nombre o email"
+                    aria-describedby={searchHelpTextId}
+                    inputProps={{ role: 'searchbox' }}
+                  />
+                  <Typography id={searchHelpTextId} className="sr-only">
+                    Filtra inscripciones por nombre del estudiante o dirección de email
+                  </Typography>
                   <EnrollmentTable
                     enrollments={filteredEnrollments}
                     onConfirm={confirmEnrollment}
